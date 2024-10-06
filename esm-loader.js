@@ -7,6 +7,10 @@ export const resolve = (specifier, context, nextResolve) => {
           specifier.endsWith(".cjs")
         )
       ) {
+        if (specifier.endsWith("/")) {
+          const newSpecifier = specifier + "index.js";
+          return nextResolve(newSpecifier, context);
+        }
         const newSpecifier = specifier + ".js";
         return nextResolve(newSpecifier, context);
       }

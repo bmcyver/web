@@ -84,9 +84,7 @@ export function create(config?: CreateAxiosDefaults): ExtendedAxiosInstance {
       if (validCookies.length > 0) {
         requestConfig.headers.set('Cookie', validCookies.join('; '));
       }
-
-      requestConfig.validateStatus = (status) => status >= 200 && status < 400;
-
+      requestConfig.validateStatus = () => true;
       return requestConfig;
     },
     (error) => {
