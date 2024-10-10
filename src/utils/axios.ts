@@ -68,9 +68,6 @@ export function create(config?: CreateAxiosDefaults): ExtendedAxiosInstance {
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
 
-  //* Disable redirects to handle cookies
-  instance.defaults.maxRedirects = 0;
-
   function isExpired(options: CookieOptions): boolean {
     if (options.expires && options.expires < new Date()) return true;
     if (options.maxAge !== undefined && options.maxAge <= 0) return true;
@@ -102,6 +99,11 @@ export function create(config?: CreateAxiosDefaults): ExtendedAxiosInstance {
       if (validCookies.length > 0) {
         config.headers.set('Cookie', validCookies.join('; '));
       }
+
+      if (config.maxRedirects === 0 || config.maxRedirects) {
+        config.validateStatus = (status) => status >= 200 && status < 400;
+      }
+
       return config;
     },
     (error) => {
@@ -112,7 +114,6 @@ export function create(config?: CreateAxiosDefaults): ExtendedAxiosInstance {
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
       handleSetCookieHeaders(response.headers);
-      console.info(response.headers, response.data);
       return response;
     },
     (error) => {
