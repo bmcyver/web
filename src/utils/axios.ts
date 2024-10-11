@@ -100,8 +100,11 @@ export function create(config?: CreateAxiosDefaults): ExtendedAxiosInstance {
         config.headers.set('Cookie', validCookies.join('; '));
       }
 
-      if (config.maxRedirects === 0 || config.maxRedirects) {
+      if (config.maxRedirects || config.maxRedirects === 0) {
         config.validateStatus = (status) => status >= 200 && status < 400;
+      } else {
+        //* disable redirect to handle cookies
+        config.maxRedirects = 0;
       }
 
       return config;
