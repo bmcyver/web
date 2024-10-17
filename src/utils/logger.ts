@@ -10,4 +10,10 @@ export const logger = {
     console.error(
       `${chalk.red('[-] ERROR')} ${chalk.redBright(message.toString())}`,
     ),
+  fatal: (message: any) => {
+    console.error(
+      `${chalk.red('[-] FATAL')} ${chalk.redBright(message.toString())}`,
+    );
+    process.exit(1);
+  },
 };
