@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import readline from 'readline';
 
 export function* trange(
@@ -15,7 +16,9 @@ export function* trange(
     readline.clearLine(process.stdout, 0);
     readline.cursorTo(process.stdout, 0);
     const progress = ((count / total) * 100).toFixed(2);
-    process.stdout.write(`${log}: ${progress}% [${count}/${total}]`);
+    process.stdout.write(
+      `${chalk.blue('[*] INFO')} ${log}: ${progress}% [${count}/${total}]`,
+    );
 
     yield current;
     current += step;

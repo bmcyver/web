@@ -26,6 +26,10 @@ interface ExtendedAxiosInstance extends AxiosInstance {
   getHeader(name: string): string | undefined;
 }
 
+interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
+  ignoreHttpError?: boolean;
+}
+
 function parseSetCookieHeader(header: string): [string, CookieOptions] {
   const [cookiePair, ...options] = header.split(';');
   const [name, value] = cookiePair.split('=', 2);
@@ -64,9 +68,15 @@ function parseSetCookieHeader(header: string): [string, CookieOptions] {
   return [name.trim(), cookieOptions];
 }
 
-export function create(config?: CreateAxiosDefaults): ExtendedAxiosInstance {
+export function create(
+  config?: ExtendedCreateAxiosDefaults,
+): ExtendedAxiosInstance {
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
+
+  if (config?.ignoreHttpError) {
+    instance.defaults.validateStatus = () => true;
+  }
 
   function isExpired(options: CookieOptions): boolean {
     if (options.expires && options.expires < new Date()) return true;

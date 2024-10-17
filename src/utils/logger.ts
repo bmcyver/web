@@ -3,9 +3,9 @@ import chalk from 'chalk';
 export const logger = {
   flag: (flag: any) => console.info(`${chalk.cyan('[+] FLAG')} ${flag}`),
   info: (...message: any) =>
-    console.info(`${chalk.blue('[*] INFO')} ${message.join(' ')}`),
+    console.info(`${chalk.blue('[*] INFO')}`, ...message),
   success: (...message: any) =>
-    console.info(`${chalk.greenBright('[+] SUCCESS')} ${message.join(' ')}`),
+    console.info(`${chalk.greenBright('[+] SUCCESS')}`, ...message),
   error: (message: any) =>
     console.error(
       `${chalk.red('[-] ERROR')} ${chalk.redBright(message.toString())}`,
