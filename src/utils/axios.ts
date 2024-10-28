@@ -75,7 +75,8 @@ export function create(
   const instance = axios.create(config) as ExtendedAxiosInstance;
 
   if (config?.ignoreHttpError) {
-    instance.defaults.validateStatus = () => true;
+    instance.defaults.validateStatus = (status) =>
+      status < 300 && status >= 400; //* ignore redirections
   }
 
   function isExpired(options: CookieOptions): boolean {
