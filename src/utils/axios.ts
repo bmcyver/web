@@ -76,7 +76,7 @@ export function create(
 
   if (config?.ignoreHttpError) {
     instance.defaults.validateStatus = (status) =>
-      status < 300 && status >= 400; //* ignore redirections
+      status < 300 || status >= 400; //* ignore redirections
   }
 
   function isExpired(options: CookieOptions): boolean {
