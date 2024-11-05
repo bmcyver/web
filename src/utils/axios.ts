@@ -27,7 +27,7 @@ interface ExtendedAxiosInstance extends AxiosInstance {
 }
 
 interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
-  ignoreHttpError?: boolean;
+  ignoreHttpErrors?: boolean;
 }
 
 function parseSetCookieHeader(header: string): [string, CookieOptions] {
@@ -74,7 +74,7 @@ export function create(
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
 
-  if (config?.ignoreHttpError) {
+  if (config?.ignoreHttpErrors) {
     instance.defaults.validateStatus = (status) =>
       status < 300 || status >= 400; //* ignore redirections
   }

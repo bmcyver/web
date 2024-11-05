@@ -1,9 +1,10 @@
 import chalk from 'chalk';
 
 export const logger = {
+  log: (...message: any) => console.log(`${chalk.gray('[*] LOG')}`, ...message),
   flag: (flag: any) => console.info(`${chalk.cyan('[+] FLAG')} ${flag}`),
   info: (...message: any) =>
-    console.info(`${chalk.blue('[*] INFO')}`, ...message),
+    console.info(`${chalk.blueBright('[*] INFO')}`, ...message),
   success: (...message: any) =>
     console.info(`${chalk.greenBright('[+] SUCCESS')}`, ...message),
   error: (message: any) =>
