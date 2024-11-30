@@ -2,6 +2,8 @@ import chalk from 'chalk';
 
 export const logger = {
   log: (...message: any) => console.log(`${chalk.gray('[*] LOG')}`, ...message),
+  debug: (...message: any) =>
+    console.debug(`${chalk.yellow('[*] DEBUG')}`, ...message),
   flag: (flag: any) => console.info(`${chalk.cyan('[+] FLAG')} ${flag}`),
   info: (...message: any) =>
     console.info(`${chalk.blueBright('[*] INFO')}`, ...message),
