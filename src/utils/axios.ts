@@ -4,6 +4,9 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from 'axios';
+import { logger } from './logger';
+
+let DEBUG = false;
 
 interface CookieOptions {
   value: string;
@@ -27,7 +30,14 @@ interface ExtendedAxiosInstance extends AxiosInstance {
 }
 
 interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
+  /**
+   * Ignore All Http Errors
+   */
   ignoreHttpErrors?: boolean;
+  /**
+   * Enable Debug Mode
+   */
+  DEBUG?: boolean;
 }
 
 function parseSetCookieHeader(header: string): [string, CookieOptions] {
@@ -68,13 +78,23 @@ function parseSetCookieHeader(header: string): [string, CookieOptions] {
   return [name.trim(), cookieOptions];
 }
 
+function debug(...args: any[]) {
+  if (DEBUG) logger.debug('[axios extended]', ...args);
+}
+
 export function create(
   config?: ExtendedCreateAxiosDefaults,
 ): ExtendedAxiosInstance {
+  if (config?.DEBUG) {
+    DEBUG = true;
+  }
+  debug('Instance creadted with config', config);
+
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
 
   if (config?.ignoreHttpErrors) {
+    debug('Enabled ignoreHttpErrors');
     instance.defaults.validateStatus = (status) =>
       status < 300 || status >= 400; //* ignore redirections
   }
@@ -87,6 +107,7 @@ export function create(
 
   function handleSetCookieHeaders(headers: any) {
     const setCookieHeader = headers['set-cookie'];
+    if (setCookieHeader) debug('Received set-cookie headers', setCookieHeader);
     if (Array.isArray(setCookieHeader)) {
       setCookieHeader.forEach((cookieString: string) => {
         const [name, options] = parseSetCookieHeader(cookieString);
@@ -100,6 +121,7 @@ export function create(
 
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+      debug(`Requesting ${config.url} with cookies`, store);
       const validCookies = Array.from(store.entries())
         .filter(([_, options]) => !isExpired(options))
         .map(
@@ -112,30 +134,35 @@ export function create(
       }
 
       if (config.maxRedirects || config.maxRedirects === 0) {
-        config.validateStatus = (status) => status >= 200 && status < 400;
+        config.validateStatus = (status) => status >= 200 && status < 400; //* disable auto cookie handling
       } else {
-        //* disable redirect to handle cookies
+        //* disable redirect to handle cookies (enabled by default)
         config.maxRedirects = 0;
       }
 
       return config;
     },
     (error) => {
+      debug('Error request', error.config);
       return Promise.reject(error);
     },
   );
 
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
+      debug(`Received response from ${response.config.url}`);
       handleSetCookieHeaders(response.headers);
       return response;
     },
     (error) => {
       //* only support 301, 302, 303  (GET method)
       if (error.response && [301, 302, 303].includes(error.response.status)) {
+        debug(`Received response from ${error.response.config.url}`);
         handleSetCookieHeaders(error.response.headers);
+        debug('Redirecting to', error.response.headers.location);
         return instance.get(error.response.headers.location);
       }
+      debug('Error response', error.response);
       return Promise.reject(error);
     },
   );
