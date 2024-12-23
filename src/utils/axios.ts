@@ -24,6 +24,7 @@ interface ExtendedAxiosInstance extends AxiosInstance {
   deleteCookie(key: string): boolean;
   setCookie(key: string, value: string, options?: Partial<CookieOptions>): void;
   getAllCookies(): { [key: string]: string };
+  deleteAllCookies(): void;
   setHeader(name: string, value: string): void;
   deleteHeader(name: string): void;
   getHeader(name: string): string | undefined;
@@ -192,6 +193,10 @@ export function create(
         .filter(([_, options]) => !isExpired(options))
         .map(([key, options]) => [key, options.value]),
     );
+  };
+
+  instance.deleteAllCookies = () => {
+    return store.clear();
   };
 
   instance.setHeader = (name: string, value: string) => {
