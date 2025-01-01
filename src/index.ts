@@ -1,1 +1,1 @@
-import { create, logger } from './utils/';
+import { create, logger, randomHex, trange } from './utils/';
