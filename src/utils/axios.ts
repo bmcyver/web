@@ -8,17 +8,6 @@ import { logger } from './logger';
 
 let DEBUG = false;
 
-interface CookieOptions {
-  value: string;
-  expires?: Date;
-  maxAge?: number;
-  domain?: string;
-  path?: string;
-  secure?: boolean;
-  httpOnly?: boolean;
-  sameSite?: 'strict' | 'lax' | 'none';
-}
-
 interface ExtendedAxiosInstance extends AxiosInstance {
   getCookie(key: string): string | undefined;
   deleteCookie(key: string): boolean;
@@ -39,6 +28,17 @@ interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
    * Enable Debug Mode
    */
   DEBUG?: boolean;
+}
+
+interface CookieOptions {
+  value: string;
+  expires?: Date;
+  maxAge?: number;
+  domain?: string;
+  path?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: 'strict' | 'lax' | 'none';
 }
 
 function parseSetCookieHeader(header: string): [string, CookieOptions] {
@@ -79,6 +79,29 @@ function parseSetCookieHeader(header: string): [string, CookieOptions] {
   return [name.trim(), cookieOptions];
 }
 
+function isExpired(options: CookieOptions): boolean {
+  if (options.expires && options.expires < new Date()) return true;
+  if (options.maxAge !== undefined && options.maxAge <= 0) return true;
+  return false;
+}
+
+function handleSetCookieHeaders(
+  store: Map<string, CookieOptions>,
+  headers: any,
+) {
+  const setCookieHeader = headers['set-cookie'];
+  if (setCookieHeader) debug('Received set-cookie headers', setCookieHeader);
+  if (Array.isArray(setCookieHeader)) {
+    setCookieHeader.forEach((cookieString: string) => {
+      const [name, options] = parseSetCookieHeader(cookieString);
+      store.set(name, options);
+    });
+  } else if (typeof setCookieHeader === 'string') {
+    const [name, options] = parseSetCookieHeader(setCookieHeader);
+    store.set(name, options);
+  }
+}
+
 function debug(...args: any[]) {
   if (DEBUG) logger.debug('[axios extended]', ...args);
 }
@@ -89,10 +112,10 @@ export function create(
   if (config?.DEBUG) {
     DEBUG = true;
   }
-  debug('Instance creadted with config', config);
 
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
+  debug('Instance creadted with config', config);
 
   if (config?.ignoreHttpErrors) {
     debug('Enabled ignoreHttpErrors');
@@ -100,29 +123,13 @@ export function create(
       status < 300 || status >= 400; //* ignore redirections
   }
 
-  function isExpired(options: CookieOptions): boolean {
-    if (options.expires && options.expires < new Date()) return true;
-    if (options.maxAge !== undefined && options.maxAge <= 0) return true;
-    return false;
-  }
-
-  function handleSetCookieHeaders(headers: any) {
-    const setCookieHeader = headers['set-cookie'];
-    if (setCookieHeader) debug('Received set-cookie headers', setCookieHeader);
-    if (Array.isArray(setCookieHeader)) {
-      setCookieHeader.forEach((cookieString: string) => {
-        const [name, options] = parseSetCookieHeader(cookieString);
-        store.set(name, options);
-      });
-    } else if (typeof setCookieHeader === 'string') {
-      const [name, options] = parseSetCookieHeader(setCookieHeader);
-      store.set(name, options);
-    }
-  }
-
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      debug(`Requesting ${config.url} with cookies`, store);
+      (config as InternalAxiosRequestConfig & { duration: Date }).duration =
+        new Date();
+
+      debug(`Requesting ${config.url} with cookies`, store.entries());
+
       const validCookies = Array.from(store.entries())
         .filter(([_, options]) => !isExpired(options))
         .map(
@@ -151,15 +158,19 @@ export function create(
 
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
-      debug(`Received response from ${response.config.url}`);
-      handleSetCookieHeaders(response.headers);
+      debug(
+        `Received response from ${response.config.url}, ${response.status} (${response.statusText}), ${new Date().getTime() - (response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`,
+      );
+      handleSetCookieHeaders(store, response.headers);
       return response;
     },
-    (error) => {
+    (error: { response: AxiosResponse }) => {
       //* only support 301, 302, 303  (GET method)
       if (error.response && [301, 302, 303].includes(error.response.status)) {
-        debug(`Received response from ${error.response.config.url}`);
-        handleSetCookieHeaders(error.response.headers);
+        debug(
+          `Received response from ${error.response.config.url}, ${error.response.status} (${error.response.statusText}), ${new Date().getTime() - (error.response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`,
+        );
+        handleSetCookieHeaders(store, error.response.headers);
         debug('Redirecting to', error.response.headers.location);
         return instance.get(error.response.headers.location);
       }

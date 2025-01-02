@@ -5,8 +5,8 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function randomHex(length: number): string {
-  return random(length).toString('hex');
+export function randomStr(length: number): string {
+  return random(length).toString('hex').slice(0, length);
 }
 
 export function input(prompt: string): Promise<string> {

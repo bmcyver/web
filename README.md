@@ -11,7 +11,7 @@ pnpm install
 
 ## Usage
 ```ts
-import { create } from './utils/'; // Must end with a slash
+import { create } from './utils/'; // Must ends with a slash
 
 const r = create({ // based on axios instance
     baseURL: '<url>',
@@ -19,3 +19,6 @@ const r = create({ // based on axios instance
     DEBUG: true, // Enable debug mode
 });
 ```
+
+## will be updated soon
+pwn utils.. :D (when I start pwn..)
