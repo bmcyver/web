@@ -1,5 +1,5 @@
-import { randomBytes as random } from 'crypto';
-import readline from 'readline';
+import { randomBytes as random } from 'node:crypto';
+import readline from 'node:readline';
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

@@ -4,7 +4,7 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from 'axios';
-import { logger } from './logger';
+import { logger } from '@utils';
 
 let DEBUG = false;
 

@@ -11,7 +11,7 @@ pnpm install
 
 ## Usage
 ```ts
-import { create } from './utils/'; // Must ends with a slash
+import { create } from '@web'; // Must ends with a slash
 
 const r = create({ // based on axios instance
     baseURL: '<url>',
