@@ -1,6 +1,9 @@
 import path from "node:path";
 
 export const resolve = (specifier, context, nextResolve) => {
+  /**
+   * Handle relative specifiers
+   */
     if (specifier.startsWith("./") || specifier.startsWith("../")) {
       if (
         !(
@@ -17,6 +20,10 @@ export const resolve = (specifier, context, nextResolve) => {
         return nextResolve(newSpecifier, context);
       }
     }
+
+    /**
+     * Handle custom specifiers
+     */
     if (specifier.startsWith('@')) {
       if (specifier === '@web') {
         return nextResolve('file:///' + path.resolve(import.meta.dirname, "./dist/web/index.js"), context);

@@ -5,6 +5,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 import { logger } from '@utils';
+import chalk from 'chalk';
 
 let DEBUG = false;
 
@@ -22,15 +23,27 @@ interface ExtendedAxiosInstance extends AxiosInstance {
 interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
   /**
    * Ignore All Http Errors
+   * @default false
    */
   ignoreHttpErrors?: boolean;
   /**
    * Enable Debug Mode
+   * @default false
    */
   DEBUG?: boolean;
+  /**
+   * Maximum number of redirects to follow
+   * @default application/x-www-form-urlencoded
+   */
+  defaultPostContentType?:
+    | 'application/x-www-form-urlencoded'
+    | 'application/json';
 }
 
 interface CookieOptions {
+  /**
+   * Cookie Value
+   */
   value: string;
   expires?: Date;
   maxAge?: number;
@@ -90,7 +103,8 @@ function handleSetCookieHeaders(
   headers: any,
 ) {
   const setCookieHeader = headers['set-cookie'];
-  if (setCookieHeader) debug('Received set-cookie headers', setCookieHeader);
+  if (setCookieHeader)
+    debug('Received set-cookie header', JSON.stringify(setCookieHeader));
   if (Array.isArray(setCookieHeader)) {
     setCookieHeader.forEach((cookieString: string) => {
       const [name, options] = parseSetCookieHeader(cookieString);
@@ -103,7 +117,7 @@ function handleSetCookieHeaders(
 }
 
 function debug(...args: any[]) {
-  if (DEBUG) logger.debug('[axios extended]', ...args);
+  if (DEBUG) logger.debug(chalk.greenBright('[axios extended]'), ...args);
 }
 
 export function create(
@@ -112,6 +126,9 @@ export function create(
   if (config?.DEBUG) {
     DEBUG = true;
   }
+
+  const defaultPostContentType =
+    config?.defaultPostContentType ?? 'application/x-www-form-urlencoded';
 
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
@@ -128,7 +145,19 @@ export function create(
       (config as InternalAxiosRequestConfig & { duration: Date }).duration =
         new Date();
 
-      debug(`Requesting ${config.url} with cookies`, store.entries());
+      debug(
+        `Requesting ${config.url} with cookies`,
+        JSON.stringify(
+          store
+            .entries()
+            .toArray()
+            .map(([key, options]) => ({ key, options })),
+        ),
+      );
+
+      if (config.method?.toLowerCase() === 'post') {
+        config.headers['Content-Type'] = defaultPostContentType;
+      }
 
       const validCookies = Array.from(store.entries())
         .filter(([_, options]) => !isExpired(options))
@@ -159,7 +188,7 @@ export function create(
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
       debug(
-        `Received response from ${response.config.url}, ${response.status} (${response.statusText}), ${new Date().getTime() - (response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`,
+        `Received response from ${response.config.url}, ${chalk.blue(`${response.status} (${response.statusText})`)}, ${chalk.blueBright(`${new Date().getTime() - (response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`)}`,
       );
       handleSetCookieHeaders(store, response.headers);
       return response;
@@ -168,7 +197,7 @@ export function create(
       //* only support 301, 302, 303  (GET method)
       if (error.response && [301, 302, 303].includes(error.response.status)) {
         debug(
-          `Received response from ${error.response.config.url}, ${error.response.status} (${error.response.statusText}), ${new Date().getTime() - (error.response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`,
+          `Received response from ${error.response.config.url}, ${chalk.blue(`${error.response.status} (${error.response.statusText})`)}, ${chalk.blueBright(`${new Date().getTime() - (error.response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`)}`,
         );
         handleSetCookieHeaders(store, error.response.headers);
         debug('Redirecting to', error.response.headers.location);
