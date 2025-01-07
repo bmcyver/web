@@ -11,14 +11,21 @@ pnpm install
 
 ## Usage
 ```ts
-import { create } from '@web'; // Must ends with a slash
+import { create, server } from '@web';
+import { logger } from '@utils';
 
 const r = create({ // based on axios instance
     baseURL: '<url>',
-    ignoreHttpErrors: true, // Ignore all http errors (NOT network errors)
-    DEBUG: true, // Enable debug mode
+    ignoreHttpErrors: true,
+    DEBUG: true,
+});
+
+const app = server({ // create express app with useful functions
+  DEBUG: true,
+  enableErrorHandler: true,
+}).listen(3000);
+
+app.get('/', async (req, res) => {
+  logger.info('GET /');
 });
 ```
-
-## will be updated soon
-pwn utils.. :D (when I start pwn..)
