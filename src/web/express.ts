@@ -17,6 +17,19 @@ interface ServerCreateConfig {
   enableErrorHandler?: boolean;
 }
 
+/**
+ * Create a new express server
+ * @param config
+ * @returns Server
+ *
+ * @example
+ * ```ts
+ * const app = server({ DEBUG: true }).listen(3000);
+ * app.get('/', (req, res) => res.send('Hello Get!'));
+ * app.post('/', (req, res) => res.send('Hello Post!'));
+ * app.use('/', (req, res) => res.send('Hello Use!'));
+ * ```
+ */
 export function server(config: ServerCreateConfig = {}) {
   return new Server(config);
 }

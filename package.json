@@ -1,5 +1,6 @@
 {
   "name": "wargame",
+  "version": "0",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
