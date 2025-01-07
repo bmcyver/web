@@ -10,13 +10,46 @@ import chalk from 'chalk';
 let DEBUG = false;
 
 interface ExtendedAxiosInstance extends AxiosInstance {
+  /**
+   * Get a cookie by key
+   * @param key
+   */
   getCookie(key: string): string | undefined;
+  /**
+   * Delete a cookie by key
+   * @param key
+   */
   deleteCookie(key: string): boolean;
+  /**
+   * Set a cookie
+   * @param key
+   * @param value
+   * @param options
+   */
   setCookie(key: string, value: string, options?: Partial<CookieOptions>): void;
+  /**
+   * Get all cookies
+   */
   getAllCookies(): { [key: string]: string };
+  /**
+   * Delete all cookies
+   */
   deleteAllCookies(): void;
+  /**
+   * Set an axios default header
+   * @param name
+   * @param value
+   */
   setHeader(name: string, value: string): void;
+  /**
+   * Delete an axios default header
+   * @param name
+   */
   deleteHeader(name: string): void;
+  /**
+   * Get an axios default header
+   * @param name
+   */
   getHeader(name: string): string | undefined;
 }
 
@@ -41,9 +74,6 @@ interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
 }
 
 interface CookieOptions {
-  /**
-   * Cookie Value
-   */
   value: string;
   expires?: Date;
   maxAge?: number;
@@ -117,7 +147,7 @@ function handleSetCookieHeaders(
 }
 
 function debug(...args: any[]) {
-  if (DEBUG) logger.debug(chalk.greenBright('[axios extended]'), ...args);
+  if (DEBUG) logger.debug(chalk.greenBright('[request]'), ...args);
 }
 
 export function create(
@@ -155,7 +185,12 @@ export function create(
         ),
       );
 
-      if (config.method?.toLowerCase() === 'post') {
+      //* Do not set Content-Type header if data is FormData or Content-Type header is already set
+      if (
+        config.method?.toLowerCase() === 'post' &&
+        !(config.data instanceof FormData) &&
+        !config.headers['Content-Type']
+      ) {
         config.headers['Content-Type'] = defaultPostContentType;
       }
 
