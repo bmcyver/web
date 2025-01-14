@@ -13,7 +13,6 @@
     "paths": {
       "@web": ["./src/web"],
       "@utils": ["./src/utils"],
-      "@pwn": ["./src/pwn"],
     }
   },
   "include": ["src/**/*"],

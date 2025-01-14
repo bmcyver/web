@@ -29,8 +29,6 @@ export const resolve = (specifier, context, nextResolve) => {
         return nextResolve('file:///' + path.resolve(import.meta.dirname, "./dist/web/index.js"), context);
       } else if (specifier === '@utils') {
         return nextResolve('file:///' + path.resolve(import.meta.dirname, "./dist/utils/index.js"), context);
-      } else if (specifier === '@pwn') {
-        return nextResolve('file:///' + path.resolve(import.meta.dirname, "./dist/pwn/index.js"), context);
       } else {
         return nextResolve(specifier, context);
       }

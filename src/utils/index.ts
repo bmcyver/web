@@ -2,4 +2,6 @@ export * from './hash';
 export * from './logger';
 export * from './misc';
 export * from './trange';
-export * from './strings';
+
+//* No need to export the following modules
+import './strings';
