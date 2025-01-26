@@ -9,19 +9,19 @@
     "email": "me@bmcyver.dev"
   },
   "devDependencies": {
-    "@eslint/js": "^9.18.0",
+    "@eslint/js": "^9.19.0",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.6",
+    "@types/jsonwebtoken": "^9.0.8",
+    "@types/node": "^22.10.10",
     "@types/qs": "^6.9.18",
-    "eslint": "^9.18.0",
+    "eslint": "^9.19.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-prettier": "^5.2.3",
     "globals": "^15.14.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.21.0"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.5",
@@ -34,7 +34,7 @@
     "express": "^4.21.2",
     "grpc-reflection-js": "^0.3.0",
     "jsonwebtoken": "^9.0.2",
-    "qs": "^6.13.1"
+    "qs": "^6.14.0"
   },
   "scripts": {
     "build": "tsc",

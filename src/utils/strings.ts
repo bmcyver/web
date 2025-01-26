@@ -34,6 +34,6 @@ String.punctuation = `!"#$%&'()*+,-./:;<=>?@[\\]^_\`{|}~`;
 String.printable =
   String.digits + String.asciiLetters + String.punctuation + String.whitespace;
 
-String.punctuation2SQLi = `!#$%&()*+,-./:;<=>?@[]^_\`{|}~`;
+String.punctuation2SQLi = `!#$&()*+,-./:;<=>?@[]^\`{|}~%_`;
 String.printable2SQLi =
   String.digits + String.asciiLetters + String.punctuation2SQLi;

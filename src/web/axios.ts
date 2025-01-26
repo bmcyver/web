@@ -63,14 +63,19 @@ interface ExtendedCreateAxiosDefaults extends CreateAxiosDefaults {
    * Enable Debug Mode
    * @default false
    */
-  DEBUG?: boolean;
+  enableDebug?: boolean;
   /**
-   * Maximum number of redirects to follow
+   * Default Content-Type for POST requests
    * @default application/x-www-form-urlencoded
    */
   defaultPostContentType?:
     | 'application/x-www-form-urlencoded'
     | 'application/json';
+  /**
+   * Handle cookies automatically
+   * @default true
+   */
+  handleCookies?: boolean;
 }
 
 interface CookieOptions {
@@ -153,12 +158,17 @@ function debug(...args: any[]) {
 export function create(
   config?: ExtendedCreateAxiosDefaults,
 ): ExtendedAxiosInstance {
-  if (config?.DEBUG) {
+  if (config?.enableDebug) {
     DEBUG = true;
   }
 
   const defaultPostContentType =
     config?.defaultPostContentType ?? 'application/x-www-form-urlencoded';
+
+  const handleCookies =
+    config?.handleCookies !== undefined && config?.handleCookies === false
+      ? false
+      : true;
 
   const store = new Map<string, CookieOptions>();
   const instance = axios.create(config) as ExtendedAxiosInstance;
@@ -177,12 +187,14 @@ export function create(
 
       debug(
         `Requesting ${config.url} with cookies`,
-        JSON.stringify(
-          store
-            .entries()
-            .toArray()
-            .map(([key, options]) => ({ key, options })),
-        ),
+        handleCookies
+          ? JSON.stringify(
+              store
+                .entries()
+                .toArray()
+                .map(([key, options]) => ({ key, options })),
+            )
+          : '',
       );
 
       //* Do not set Content-Type header if data is FormData or Content-Type header is already set
@@ -194,15 +206,18 @@ export function create(
         config.headers['Content-Type'] = defaultPostContentType;
       }
 
-      const validCookies = Array.from(store.entries())
-        .filter(([_, options]) => !isExpired(options))
-        .map(
-          ([key, options]) =>
-            `${encodeURIComponent(key)}=${encodeURIComponent(options.value)}`,
-        );
+      //* DO not set cookies if handleCookies is disabled
+      if (handleCookies) {
+        const validCookies = Array.from(store.entries())
+          .filter(([_, options]) => !isExpired(options))
+          .map(
+            ([key, options]) =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(options.value)}`,
+          );
 
-      if (validCookies.length > 0) {
-        config.headers.set('Cookie', validCookies.join('; '));
+        if (validCookies.length > 0) {
+          config.headers.set('Cookie', validCookies.join('; '));
+        }
       }
 
       if (config.maxRedirects || config.maxRedirects === 0) {
@@ -225,7 +240,7 @@ export function create(
       debug(
         `Received response from ${response.config.url}, ${chalk.blue(`${response.status} (${response.statusText})`)}, ${chalk.blueBright(`${new Date().getTime() - (response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`)}`,
       );
-      handleSetCookieHeaders(store, response.headers);
+      if (handleCookies) handleSetCookieHeaders(store, response.headers);
       return response;
     },
     (error: { response: AxiosResponse }) => {
@@ -234,7 +249,8 @@ export function create(
         debug(
           `Received response from ${error.response.config.url}, ${chalk.blue(`${error.response.status} (${error.response.statusText})`)}, ${chalk.blueBright(`${new Date().getTime() - (error.response.config as InternalAxiosRequestConfig & { duration: Date }).duration.getTime()}ms`)}`,
         );
-        handleSetCookieHeaders(store, error.response.headers);
+        if (handleCookies)
+          handleSetCookieHeaders(store, error.response.headers);
         debug('Redirecting to', error.response.headers.location);
         return instance.get(error.response.headers.location);
       }

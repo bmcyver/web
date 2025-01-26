@@ -2,14 +2,14 @@ import express from 'express';
 import chalk from 'chalk';
 import { logger } from '@utils';
 import cookieParser from 'cookie-parser';
-import { IncomingHttpHeaders } from 'http';
+import { IncomingHttpHeaders } from 'node:http';
 
 interface ServerCreateConfig {
   /**
    * Enable Debug Mode
    * @default false
    */
-  DEBUG?: boolean;
+  enableDebug?: boolean;
   /**
    * Enable Error Handler
    * @default true
@@ -45,7 +45,7 @@ class Server {
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cookieParser());
 
-    if (this.config.DEBUG) {
+    if (this.config.enableDebug) {
       this.debug('Adding request logger');
       this.app.use(
         (
@@ -94,7 +94,8 @@ class Server {
   }
 
   private debug(...args: any[]) {
-    if (this.config.DEBUG) logger.debug(chalk.greenBright('[server]'), ...args);
+    if (this.config.enableDebug)
+      logger.debug(chalk.greenBright('[server]'), ...args);
   }
 
   public listen(port: number) {
